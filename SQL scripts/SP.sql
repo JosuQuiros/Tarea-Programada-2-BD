@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_EmpleadoSelect
+CCREATE PROCEDURE sp_EmpleadoSelect
     @inFilter NVARCHAR(32),
     @outResultCode INT OUTPUT
 AS
@@ -102,7 +102,7 @@ BEGIN
         IF @inValorDocumentoIdentidad = (
             SELECT ValorDocumentoIdentidad 
             FROM dbo.Empleado AS E 
-            WHERE E.Id != @inId
+            WHERE E.Id = @inId
             )
             SET @outResultCode = 50006;
             /*Codigo de "Empleado con ValorDocumentoIdentidad ya existe en actualizacion" 
@@ -111,7 +111,7 @@ BEGIN
         ELSE IF @inNombre = (
             SELECT Nombre
             FROM dbo.Empleado AS E 
-            WHERE E.Id != @inId
+            WHERE E.Id = @inId
             )
             SET @outResultCode = 5007; 
             /*Codigo de "Empleado con mismo nombre ya existe en actualizacion" 
@@ -151,10 +151,8 @@ go
 
 CREATE PROCEDURE sp_EmpleadoInsert
     @inIdPuesto INT,
-    @inValorDocumentoIdentidad INT,
+    @inValorDocumentoIdentidad VARCHAR(64),
     @inNombre VARCHAR(64),
-    @inFechaContratacion DATE,
-    @inSaldoVacaciones INT,
     @outResultCode INT OUTPUT
 AS
 BEGIN
@@ -163,55 +161,64 @@ BEGIN
         IF EXISTS(
             SELECT 1
             FROM dbo.Empleado AS E 
-            WHERE E.ValorDocumentoIdentidad!= @inValorDocumentoIdentidad
-            )
-            SET @outResultCode = 5004;
-            /*Codigo de ""Empleado con ValorDocumentoIdentidad ya existe en inserción" 
-            en el catalogo de errores*/
+            WHERE E.ValorDocumentoIdentidad = @inValorDocumentoIdentidad
+        )
+        BEGIN
+            SET @outResultCode = 50004;
+            RETURN;
+        END
 
-        ELSE IF EXISTS(
+        IF EXISTS(
             SELECT 1
             FROM dbo.Empleado AS E 
-            WHERE E.Nombre != @inNombre
-            )
-            SET @outResultCode = 5005;
-            /*Codigo de ""Empleado con mismo nombre ya existe en inserción" 
-            en el catalogo de errores*/
-        ELSE
-        INSERT INTO dbo.Empleado (IdPuesto
-        ,ValorDocumentoIdentidad
-        ,Nombre
-        ,FechaContratacion
-        ,SaldoVacaciones
-        ,EsActivo)
-        VALUES (@inIdPuesto
-        ,@inValorDocumentoIdentidad
-        ,@inNombre
-        ,@inFechaContratacion
-        ,@inSaldoVacaciones
-        ,1);
-        SET @outResultCode = 0;
+            WHERE E.Nombre = @inNombre
+        )
+        BEGIN
+            SET @outResultCode = 50005;
+            RETURN;
+        END
 
+        INSERT INTO dbo.Empleado (
+            IdPuesto,
+            ValorDocumentoIdentidad,
+            Nombre,
+            FechaContratacion,
+            SaldoVacaciones,
+            EsActivo)
+        VALUES (
+            @inIdPuesto,
+            @inValorDocumentoIdentidad,
+            @inNombre,
+            GETDATE(),
+            0,
+            1
+        );
+
+        SET @outResultCode = 0;
     END TRY
     BEGIN CATCH
-        SET @outResultCode = 50008; --Codigo de "error de base de datos" en el catalogo de errores
+        SET @outResultCode = 50008;
+
         INSERT INTO dbo.DBError (
-        UserName
-        ,Number
-        ,State
-        ,Severity
-        ,Line
-        ,[Procedure]
-        ,Message
-        ,DateTime)
-        VALUES (USER_NAME()
-        ,ERROR_NUMBER()
-        ,ERROR_STATE()
-        ,ERROR_SEVERITY()
-        ,ERROR_LINE()
-        ,ERROR_PROCEDURE()
-        ,ERROR_MESSAGE()
-        ,GETDATE());
+            UserName,
+            Number,
+            State,
+            Severity,
+            Line,
+            [Procedure],
+            Message,
+            DateTime)
+        VALUES (
+            USER_NAME(),
+            ERROR_NUMBER(),
+            ERROR_STATE(),
+            ERROR_SEVERITY(),
+            ERROR_LINE(),
+            ERROR_PROCEDURE(),
+            ERROR_MESSAGE(),
+            GETDATE()
+        );
     END CATCH
 END
+
 go
