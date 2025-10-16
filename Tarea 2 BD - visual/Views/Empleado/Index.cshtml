@@ -1,0 +1,31 @@
+﻿@model IEnumerable<Empleado>
+<h2>Lista de Empleados</h2>
+<p><a href="/Empleado/Insert">Insertar Empleado</a></p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nombre</th>
+            <th>Documento de identidad</th>
+            <th>Fecha de Contratacion</th>
+            <th>Saldo de vacaciones</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var emp in Model)
+        {
+            if (@emp.EsActivo)
+            { 
+            <tr>
+                <td>@emp.id</td>
+                <td>@emp.Nombre</td>
+                <td>@emp.ValorDocumentoIdentidad</td>
+                <td>@emp.FechaContratacion</td>
+                <td>@emp.SaldoVacaciones</td>
+            </tr>
+            }
+        }
+    </tbody>
+</table>
