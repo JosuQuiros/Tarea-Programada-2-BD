@@ -1,0 +1,20 @@
+*.json
+*.dll
+*.exe
+*.pdb
+*.css
+*.cache
+*.txt
+*.editorconfig
+*.targets
+*.js
+*.md
+*.map
+*.csproj
+*.user
+/Tarea 2 BD - visual/obj
+*.ico
+/Tarea 2 BD - visual/wwwroot/lib/bootstrap
+/Tarea 2 BD - visual/Views/Shared
+/Tarea 2 BD - visual/Views/Home
+/Tarea 2 BD - visual/Pages
